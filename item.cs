@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace OneListClient
 {
-    public class item
+    public class Item
     {
         [JsonPropertyName("id")]
         public int Id { get; set; }
