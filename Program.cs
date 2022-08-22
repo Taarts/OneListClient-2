@@ -1,12 +1,18 @@
 ﻿using System;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace OneListClient
 {
-  class Program
-  {
-    static void Main(string[] args)
+    class Program
     {
-      Console.WriteLine("Welcome to C#");
+        static async Task Main(string[] args)
+        {
+            var client = new HttpClient();
+
+            var responseBodyAsString = await client.GetStringAsync("https://one-list-api.herokuapp.com/itmes?access_token={token});
+
+            Console.WriteLine(responseBodyAsString);
+        }
     }
-  }
 }
