@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading.Tasks;
 using ConsoleTables;
@@ -9,6 +10,39 @@ namespace OneListClient
 {
     class Program
     {
+        static async Task AddOneItem(string token, Item newItem)
+        {
+            var client = new HttpClient();
+
+            // Generate a URL specifically referencing the endpoint for adding a todo item
+            var url = $"https://one-list-api.herokuapp.com/items?access_token={token}";
+
+            // Take the `newItem` and serialize it into JSON (Object to a string)
+            var jsonBody = JsonSerializer.Serialize(newItem);
+
+            // We turn this into a StringContent object and indicate we are using JSON
+            // by ensuring there is a media type header of `application/json`
+            var jsonBodyAsContent = new StringContent(jsonBody);
+            jsonBodyAsContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            // Send the POST request to the URL and supply the JSON body
+            var response = await client.PostAsync(url, jsonBodyAsContent);
+
+            // Get the response as a stream.
+            var responseJson = await response.Content.ReadAsStreamAsync();
+
+            // Supply that *stream of data* to a Deserialize that will interpret it as a *SINGLE* `Item`
+            var item = await JsonSerializer.DeserializeAsync<Item>(responseJson);
+
+            // Make a table to output our new item.
+            var table = new ConsoleTable("ID", "Description", "Created At", "Updated At", "Completed");
+
+            // Add one row to our table
+            table.AddRow(item.Id, item.Text, item.CreatedAt, item.UpdatedAt, item.CompletedStatus);
+
+            // Write the table
+            table.Write(Format.Minimal);
+        }
         // created after "ShowAllItems" method
         static async Task GetOneItem(string token, int id)
         {
@@ -78,7 +112,7 @@ namespace OneListClient
             while (keepGoing)
             {
                 Console.Clear();
-                Console.Write("Get (A)ll todo, or (Q)uit: ");
+                Console.Write("Get (A)ll todo, or Get (O)ne Item or (C)reate a new ToDo (Q)uit: ");
                 var choice = Console.ReadLine().ToUpper();
                 switch (choice)
                 {
@@ -89,6 +123,18 @@ namespace OneListClient
                         Console.Write("Enter the ID of the item to show: ");
                         var id = int.Parse(Console.ReadLine());
                         await GetOneItem(token, id);
+                        Console.WriteLine("Press ENTER to continue");
+                        Console.ReadLine();
+                        break;
+
+                    case "C":
+                        Console.Write("Enter the description of your new todo: ");
+                        var text = Console.ReadLine();
+                        var newItem = new Item
+                        {
+                            Text = text
+                        };
+                        await AddOneItem(token, newItem);
                         Console.WriteLine("Press ENTER to continue");
                         Console.ReadLine();
                         break;
