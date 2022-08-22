@@ -20,7 +20,7 @@ namespace OneListClient
         {
             get
             {
-                // boolean expression  ?  true       : false
+                // boolean expression  ?  true  : false
                 return Complete ? "complete" : "incomplete";
             }
         }
