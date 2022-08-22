@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Text.Json;
 
 namespace OneListClient
 {
@@ -10,9 +12,16 @@ namespace OneListClient
         {
             var client = new HttpClient();
 
-            var responseBodyAsString = await client.GetStringAsync("https://one-list-api.herokuapp.com/itmes?access_token={token});
+            var responseBodyAsStream = await client.GetStreamAsync("https://one-list-api.herokuapp.com/items?access_token=cohort24");
+            // describes the <i> shape</i> of the data
+            // (array in JSON => List, Object in JSON => Item)
+            //                                    v             v   v
+            var items = await JsonSerializer.DeserializeAsync<List<item>>(responseBodyAsStream);
 
-            Console.WriteLine(responseBodyAsString);
+            foreach (var item in items)
+            {
+                Console.WriteLine($"the task {item.text} was created on {item.created_at} and has a completion of {item.complete}");
+            }
         }
     }
 }
