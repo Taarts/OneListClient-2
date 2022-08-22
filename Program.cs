@@ -9,7 +9,26 @@ namespace OneListClient
 {
     class Program
     {
+        // created after "ShowAllItems" method
+        static async Task GetOneItem(string token, int id)
+        {
+            try
+            {
+                var client = new HttpClient();
 
+                var responseBodyAsStream = await client.GetStringAsync($"https://one-list-api.herokuapp.com/api/v1/items/{id}?access_token={token}");
+
+                var item = await JsonSerializer.DeserializeAsync<Item>(responseBodyAsStream);
+                var table = new ConsoleTable("Description", "Created At", "Completed");
+                table.AddRow(item.Text, item.CreatedAt, item.CompletedStatus);
+                table.Write();
+            }
+            catch (HttpRequestException)
+            {
+                Console.WriteLine($"I couldn't find that item.");
+
+            }
+        }
         static async Task ShowAllItems(string token)
         {
             var client = new HttpClient();
@@ -22,7 +41,7 @@ namespace OneListClient
             // describes the <i> shape</i> of the data
             // (array in JSON => List, Object in JSON => Item)
             //                                    v             v   v
-            var items = await JsonSerializer.DeserializeAsync<List<item>>(responseBodyAsStream);
+            var items = await JsonSerializer.DeserializeAsync<List<Item>>(responseBodyAsStream);
             //  table headers **********************************************************
             var table = new ConsoleTable("Description", "Created At", "Completed");
             //  table headers **********************************************************
@@ -65,6 +84,13 @@ namespace OneListClient
                 {
                     case "Q":
                         keepGoing = false;
+                        break;
+                    case "O":
+                        Console.Write("Enter the ID of the item to show: ");
+                        var id = int.Parse(Console.ReadLine());
+                        await GetOneItem(token, id);
+                        Console.WriteLine("Press ENTER to continue");
+                        Console.ReadLine();
                         break;
                     case "A":
                         // have to await method when using async
